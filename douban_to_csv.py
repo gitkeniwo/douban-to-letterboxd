@@ -5,6 +5,20 @@ import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 
+# run with: python douban_to_csv.py <douban_id> <start_date>
+
+import logging
+
+logging.basicConfig(
+    filename='failed_entries.log', 
+    filemode='w',  # Set filemode to 'w' for write mode (overwrite)
+    level=logging.INFO, 
+    format='%(asctime)s - %(message)s',
+    datefmt='%H:%M:%S',
+)
+
+logging.info('Start logging...')
+
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/537.36 (KHTML, like Gecko) ' \
              'Chrome/47.0.2526.106 Safari/537.36 '
 START_DATE = '20050502'
@@ -35,8 +49,10 @@ def get_imdb_id(url):
                     break
         else:
             print('不登录无法访问此电影页面：', url)
+            logging.info(f'Failed to access {url} without logging in.')
     except:
         print('无法获得IMDB编号的电影页面：', url)
+        logging.info(f'Failed to get IMDB ID from {url}.')
     finally:
         return imdb_id if not imdb_id or imdb_id.startswith('tt') else None
 
@@ -50,7 +66,9 @@ def get_info(url):
         for item in movie_items:
             # meta data
             douban_link = item.a['href']
-            title = item.find("li", {"class": "title"}).em.text
+
+            # changes made
+            # title = item.find("li", {"class": "title"}).em.text
 
             rating = item.find(
                 "span", {"class": "date"}).find_previous_siblings()
@@ -74,7 +92,9 @@ def get_info(url):
                 IS_OVER = True
                 break
 
-            info.append([title, rating, imdb])
+            # changes made
+            # info.append([title, rating, imdb])
+            info.append([douban_link, rating, imdb])
     else:
         return None
 
